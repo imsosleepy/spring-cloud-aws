@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Consumer;
+
+import io.awspring.cloud.sqs.listener.sink.adapter.FilteringSinkAdapter;
 import org.springframework.messaging.Message;
 import org.springframework.util.Assert;
 
@@ -70,6 +72,8 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 	private AcknowledgementResultCallback<T> acknowledgementResultCallback;
 
 	private Collection<ContainerComponentFactory<T, O>> containerComponentFactories;
+
+	private FilteringSinkAdapter filteringSinkAdapter;
 
 	protected AbstractMessageListenerContainerFactory(O containerOptions) {
 		this.containerOptionsBuilder = containerOptions.toBuilder();
@@ -165,6 +169,17 @@ public abstract class AbstractMessageListenerContainerFactory<T, C extends Messa
 			Collection<ContainerComponentFactory<T, O>> containerComponentFactories) {
 		Assert.notEmpty(containerComponentFactories, "containerComponentFactories cannot be null or empty");
 		this.containerComponentFactories = containerComponentFactories;
+	}
+
+	/**
+	 * Sets the FilteringSinkAdapter for the message listener container.
+	 * This allows filtering of messages before they are processed.
+	 *
+	 * @param filteringSinkAdapter the filtering adapter to set
+	 */
+	public void setFilteringSinkAdapter(FilteringSinkAdapter filteringSinkAdapter) {
+		Assert.notNull(filteringSinkAdapter, "filteringSinkAdapter cannot be null");
+		this.filteringSinkAdapter = filteringSinkAdapter;
 	}
 
 	/**

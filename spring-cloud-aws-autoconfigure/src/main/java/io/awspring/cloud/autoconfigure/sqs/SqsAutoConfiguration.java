@@ -30,6 +30,8 @@ import io.awspring.cloud.sqs.listener.errorhandler.AsyncErrorHandler;
 import io.awspring.cloud.sqs.listener.errorhandler.ErrorHandler;
 import io.awspring.cloud.sqs.listener.interceptor.AsyncMessageInterceptor;
 import io.awspring.cloud.sqs.listener.interceptor.MessageInterceptor;
+import io.awspring.cloud.sqs.listener.sink.DefaultFilteringSinkAdapter;
+import io.awspring.cloud.sqs.listener.sink.adapter.FilteringSinkAdapter;
 import io.awspring.cloud.sqs.operations.SqsTemplate;
 import io.awspring.cloud.sqs.operations.SqsTemplateBuilder;
 import io.awspring.cloud.sqs.support.converter.MessagingMessageConverter;
@@ -104,7 +106,8 @@ public class SqsAutoConfiguration {
 			ObjectProvider<ErrorHandler<Object>> errorHandler,
 			ObjectProvider<AsyncMessageInterceptor<Object>> asyncInterceptors,
 			ObjectProvider<MessageInterceptor<Object>> interceptors, ObjectProvider<ObjectMapper> objectMapperProvider,
-			MessagingMessageConverter<?> messagingMessageConverter) {
+			MessagingMessageConverter<?> messagingMessageConverter,
+			ObjectProvider<FilteringSinkAdapter> filteringSinkAdapterProvider) {
 
 		SqsMessageListenerContainerFactory<Object> factory = new SqsMessageListenerContainerFactory<>();
 		factory.configure(this::configureProperties);
@@ -115,6 +118,7 @@ public class SqsAutoConfiguration {
 		asyncInterceptors.forEach(factory::addMessageInterceptor);
 		objectMapperProvider.ifAvailable(om -> setMapperToConverter(messagingMessageConverter, om));
 		factory.configure(options -> options.messageConverter(messagingMessageConverter));
+		filteringSinkAdapterProvider.ifAvailable(adapter -> factory.setFilteringSinkAdapter(new DefaultFilteringSinkAdapter()));
 		return factory;
 	}
 
@@ -148,6 +152,12 @@ public class SqsAutoConfiguration {
 				registrar.setObjectMapper(objectMapper);
 			}
 		};
+	}
+
+	@ConditionalOnMissingBean
+	@Bean
+	public FilteringSinkAdapter defaultFilteringSinkAdapter() {
+		return new DefaultFilteringSinkAdapter();
 	}
 
 }
